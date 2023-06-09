@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/chatstyle.css">
+    <title>チャットアプリ</title>
+</head>
+
+
+    <!-- コンテンツ表示画面 -->
+    
+    
+    <div class="line_container">    
+        <div id= "chatbot">
+            <div id= "chatbot-body">
+                <ul id= "chatbot-ul"></ul>
+            </div>
+        </div>
+        
+        
+        <div class="textarea">
+            <div>
+                <!-- <form onsubmit= "return false">
+                    <div id= "chatbot-footer">              
+                        <input type= "text" id= "chatbot-te"  placeholder= "テキストを入力">
+                        <input type= "submit" value= "送信" id= "chatbot-sub">
+                    </div>
+                </form>   -->
+            <button id="chatbot-submit">送信</button>
+            <button id="clear">消去</button>
+            <textarea id="chatbot-text" cols="100" rows="7"></textarea>
+                <!--入力場所，送信ボタン-->
+                
+            </div>
+        </div>
+        <div id="output" style="overflow: auto;height: 1200px;"></div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved }
+            from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            // コンフィグ
+
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app); //RealtimeDBに接続
+        const dbRef = ref(db, "chat"); //RealtimeDB内の"chat"を使う
+
+        //データ登録(Click)
+        $("#chatbot-submit").on("click", function () {
+            const msg = {
+                text: $("#chatbot-text").val()
+            }
+            const newPostRef = push(dbRef); //ユニークKEYを生成
+            set(newPostRef, msg);    //"chat"にユニークKEYをつけてオブジェクトデータを登録
+            $("#chatbot-text").val("")        
+            // 打ち込んだら空にする
+        });
+
+
+        //最初にデータ取得＆onSnapshotでリアルタイムにデータを取得
+        onChildAdded(dbRef, function (data) {
+            const msg = data.val();    //オブジェクトデータを取得し、変数msgに代入
+            const key = data.key;      //データのユニークキー（削除や更新に使用可能）
+            //表示用テキスト・HTMLを作成
+            let h = '<h1>';
+            h += msg.text;
+            h += '</h1>';
+            $("#output").append(h); //#outputの最後に追加
+        });
+
+        $("#clear").on("click", function () {
+            remove(dbRef);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+            $("#output").empty();
+        });
+
+
+
+
+    </script>
+    <script>
+        const chatList = {
+    1: {text: '　　「事故報告書]　　', continue: true, option: 'normal'},
+    2: {text: '質問の流れに沿って下段フォーマットに記入していってください。', continue: true, option: 'normal'},
+    3: {text: {title: '内容確認', question: 'どのような事故でしたか？', choices: ['　自車が車と接触した　', '　自社が人と接触した　', '　自社が物と接触した　', '　他社に接触された　']}, continue: false, option: 'choices', questionNextSupport: true}, // questionNextSupportは次に質問に対する詳細を投稿するかどうか
+    // userCount1：事故内容
+    4: {text: ['https://www.takumi-ins.com/', '　まずは救急車を呼んでください　', 'https://www.takumi-ins.com/', 'https://www.takumi-ins.com/'], continue: true, option: 'normal', link: true},
+    5: {text: '記入前にここに連絡【対応】をしててください。', continue: true, option: 'normal'},
+    6: {text: 'あなたのお名前を記入してください', continue: false, option: 'normal'},
+    // userCount2：名前
+    7: {text: '', continue: true, option: 'normal'},
+    8: {text: '事故の起きた日時はいつですか？[年／月／日／何時頃]', continue: false, option: 'normal'},
+    // userCount3：日時
+    9: {text: '', continue: true, option: 'normal'},
+    10: {text: '事故の起きた場所はどこですか？[住所／道路名]', continue: false, option: 'normal'},
+    // userCount4：場所
+    11: {text: '', continue: true, option: 'normal'},
+    12: {text: '先方のお名前【会社の場合：担当者】を記入してください', continue: false, option: 'normal'},
+    // userCount5：相手の名前
+    13: {text: '', continue: true, option: 'normal'},
+    14: {text: '先方の連絡先を記入してください', continue: false, option: 'normal'},
+    // userCount6：連絡先
+    15: {text: '', continue: true, option: 'normal'},
+    16: {text: '相手の方とは「今後の対応」について話しましたか？', continue: true, option: 'normal'},
+    17: {text: {title: '保険に関して', question: 'どう対応するようですか？', choices: ['相手も保険を使うようだ', 'まだ聞いていない'], answer: '0'}, continue: false, option: 'choices'},
+    // userCount7：相手の連絡先
+    18: {text: {qTrue: '', qFalse:'わかりました、こちらから聞いてみます。'}, continue: true, option: 'normal'},
+    19: {text: '', continue: true, option: 'normal'},
+    20: {text: {title: '不注意度', question: '今回の自身の運転を客観的に見て不注意度を5段階で教えてください（数字が大きいほど不注意度が高いものとします。）', choices: ['5', '4', '3', '2', '1']}, continue: false, option: 'choices'},
+    // userCount8：不注意度
+    21: {text: '最後に、同様の事故を起こさないための具体的対策や注意点を記入してください。', continue: false, option: 'normal'},
+    // userCount9：感想
+    22: {text: '', continue: false, option: 'normal'}
+};
+
+
+// 上記の投稿文（空の「text」）を加工する関数（中に相手の名前などを挿入する際に用いる）
+// userData === ["何を知りたいですか？", 名前","日時","相手対応の質問","満足度","感想"];
+// userData はユーザーの回答内容の全てを記憶
+function textSpecial() {
+    chatList[7].text = `お疲れ様です、${userData[1]}さん。`;
+    chatList[9].text = `日時は${userData[2]}ですね。`;
+    chatList[11].text = `場所は${userData[3]}ですね。`;
+    chatList[13].text = `お相手は${userData[4]}様ですね。`;
+    chatList[15].text = `連絡先は${userData[5]}ですね。`;
+    chatList[18].text.qTrue = `わかりました！${userData[1]}さん。`;
+    chatList[19].text = `${userData[1]}さん、わかりました。事故報告はここで終了となります。`; 
+    chatList[22].text = `${userData[1]}さんが自身で感じる今回の不注意度は「${userData[8]}」，今後の対策として、「${userData[9]}」ですね、今一度気を付けて運転をお願いします。`;
+}
+
+
+
+
+
+
+// 「userCount」は実質必要ないが、管理しやすくするために導入する（「chatList」のコメントアウト，最後のやまびこ，今後の開発）
+let userCount = 0;
+// ユーザーの発言，回答内容を記憶する配列
+let userData = [];
+
+// 一番下へ
+function chatToBottom() {
+    const chatField = document.getElementById('chatbot-body');
+    chatField.scroll(0, chatField.scrollHeight - chatField.clientHeight);
+}
+
+const userText = document.getElementById('chatbot-text');
+const chatSubmitBtn = document.getElementById('chatbot-submit');
+
+// ロボットが投稿をする度にカウントしていき、投稿を管理する
+let robotCount = 0;
+// 選択肢の正解個数
+let qPoint = 0;
+
+// 選択肢ボタンを押したときの次の選択肢（textのa，bなど）
+let nextTextOption = '';
+
+// 選択肢ボタンを押したとき（必要があれば、正解判別）
+function pushChoice(e) {
+    userCount ++;
+    console.log(`userCount: ${userCount}`);
+
+    const choicedId = e.getAttribute('id'); // 選択した選択肢のid
+    // 回答内容の保存
+    userData.push(document.getElementById(choicedId).textContent);
+    if (chatList[robotCount].text.answer) {
+        // 正解，不正解のある選択肢
+        const trueChoice = `q-${robotCount}-${chatList[robotCount].text.answer}`// 正解選択肢のid
+        if (choicedId === trueChoice) {
+            // 正解
+            nextTextOption = 'qTrue';
+            qPoint ++;
+        } else {
+            // 不正解
+            nextTextOption = 'qFalse';
+        }
+    } else {
+        // 正解のない質問
+        if(chatList[robotCount].questionNextSupport) {
+            if (String(robotCount).length === 1) {
+                // robotCountの桁数が1桁の時
+                nextTextOption = choicedId.slice(4);
+            } else if (String(robotCount).length === 2) {
+                // robotCountの桁数が2桁の時
+                nextTextOption = choicedId.slice(5);
+            } else if (String(robotCount).length === 3) {
+                // robotCountの桁数が3桁の時
+                nextTextOption = choicedId.slice(6);
+            }
+        }
+    }
+    for (let i = 0; i < chatList[robotCount].text.choices.length; i ++) {
+        document.getElementById('q-' + robotCount + '-' + i).disabled = true;
+        document.getElementById('q-' + robotCount + '-' + i).classList.add('choice-button-disabled');
+        document.getElementById(choicedId).classList.remove('choice-button-disabled');
+    }
+
+  　robotOutput();
+
+    console.log(userData);
+}
+
+// 拡大ボタン
+let chatbotZoomState = 'none';
+const chatbot = document.getElementById('chatbot');
+const chatbotBody = document.getElementById('chatbot-body');
+const chatbotFooter = document.getElementById('chatbot-footer');
+const chatbotZoomIcon = document.getElementById('chatbot-zoom-icon');
+
+
+// --------------------ロボットの投稿--------------------
+function robotOutput() {
+    // 相手の返信が終わるまで、その間は返信不可にする
+    // なぜなら、自分の返信を複数受け取ったことになり、その全てに返信してきてしまうから
+    // 例："Hi!〇〇!"を複数など
+      
+    robotCount ++;
+    console.log('robotCount：' + robotCount);
+
+    chatSubmitBtn.enabled = true;
+    
+	// ulとliを作り、左寄せのスタイルを適用し投稿する
+    const ul = document.getElementById('chatbot-ul');
+    const li = document.createElement('li');
+    li.classList.add('left');
+    ul.appendChild(li);
+    
+    // 考え中アニメーションここから
+    const robotLoadingDiv = document.createElement('div');
+
+    setTimeout( ()=> {
+        li.appendChild(robotLoadingDiv);
+        robotLoadingDiv.classList.add('chatbot-left');
+        robotLoadingDiv.innerHTML = '<div id= "robot-loading-field"><span id= "robot-loading-circle1" class="material-icons">・</span> <span id= "robot-loading-circle2" class="material-icons">・</span> <span id= "robot-loading-circle3" class="material-icons">・</span>';
+        console.log('考え中');
+        // 考え中アニメーションここまで
+
+        // 一番下までスクロール
+        chatToBottom();
+    }, 800);
+
+    setTimeout( ()=> {
+
+        // 考え中アニメーション削除
+        robotLoadingDiv.remove();
+
+        if (chatList[robotCount].option === 'choices') {
+            const qAnswer = `q-${robotCount}-${chatList[robotCount].text.answer}`;
+            const choiceField = document.createElement('div');
+            choiceField.id = `q-${robotCount}`;
+            choiceField.classList.add('chatbot-left-rounded');
+            li.appendChild(choiceField);
+          
+            // 質問タイトル
+            const choiceTitle = document.createElement('div');
+            choiceTitle.classList.add('choice-title');
+            choiceTitle.textContent = chatList[robotCount].text.title;
+            choiceField.appendChild(choiceTitle);
+            // 質問文
+            const choiceQ = document.createElement('div');
+            choiceQ.textContent = chatList[robotCount].text.question;
+            choiceQ.classList.add('choice-q');
+            choiceField.appendChild(choiceQ);
+          
+            // 選択肢作成
+            for (let i = 0; i < chatList[robotCount].text.choices.length; i ++) {
+                const choiceButton = document.createElement('button');
+                choiceButton.id = `${choiceField.id}-${i}`; // id設定
+                choiceButton.setAttribute('onclick', 'pushChoice(this)'); // ボタンを押した際の合図
+                choiceButton.classList.add('choice-button');
+                choiceField.appendChild(choiceButton);
+                choiceButton.textContent = chatList[robotCount].text.choices[i];
+            }
+          
+        } else {
+            // このdivにテキストを指定
+            const div = document.createElement('div');
+            li.appendChild(div);
+            div.classList.add('chatbot-left');
+            
+            // テキストを加工する場合（次の回答が選択型でも使えるようにここに設置）
+            textSpecial();  
+          
+            switch(chatList[robotCount].option) {
+                case 'normal':
+                    if (chatList[robotCount].text.qTrue) {
+                        // 複数のテキストのうち特定のものを設定するとき
+                        if(chatList[robotCount].link) {
+                            div.innerHTML = `<a href= "${chatList[robotCount].text[nextTextOption]}" onclick= "chatbotLinkClick()">${chatList[robotCount].text[nextTextOption]}</a>`;
+                        } else {
+                            div.textContent = chatList[robotCount].text[nextTextOption];
+                        }
+                    } else if (robotCount > 1 && chatList[robotCount - 1].questionNextSupport) {
+                        console.log('次の回答の選択肢は' + nextTextOption);
+                        // 答えのない質問（次にサポートあり）
+                        if(chatList[robotCount].link) {
+                            div.innerHTML = `<a href= "${String(chatList[robotCount].text[nextTextOption])}" onclick= "chatbotLinkClick()">${String(chatList[robotCount].text[nextTextOption])}</a>`;
+                        } else {
+                            div.textContent = String(chatList[robotCount].text[nextTextOption]);
+                        }
+                    } else {
+                        // 通常
+                        if(chatList[robotCount].link) {
+                            div.innerHTML = `<a href= "${chatList[robotCount].text}" onclick= "chatbotLinkClick()">${chatList[robotCount].text}</a>`;
+                        } else {
+                            div.textContent = chatList[robotCount].text;
+                        }
+                    }
+                break;
+
+                case 'random':
+                    if(chatList[robotCount].link) {
+                        div.innerHTML = `<a href= "${chatList[robotCount].text[Math.floor(Math.random() * chatList[robotCount].text.length)]}" onclick= "chatbotLinkClick()">${chatList[robotCount].text[Math.floor(Math.random() * chatList[robotCount].text.length)]}</a>`;
+                    } else {
+                        div.textContent = chatList[robotCount].text[Math.floor(Math.random() * chatList[robotCount].text.length)];
+                    }
+                    
+                break;
+            }
+            chatSubmitBtn.enabled = false;
+        }
+
+        // 一番下までスクロール
+        chatToBottom();
+
+        // 連続投稿
+        if (chatList[robotCount].continue) {
+            robotOutput();
+        }
+    }, 2000);
+
+    if(chatbotZoomState === 'large' && window.matchMedia('(min-width:700px)').matches) {
+        document.querySelectorAll('.chatbot-left').forEach((cl) => {
+            cl.style.maxWidth = '52vw';
+        });
+        document.querySelectorAll('.chatbot-right').forEach((cr) => {
+            cr.style.maxWidth = '52vw';
+        });
+        document.querySelectorAll('.chatbot-left-rounded').forEach((cr) => {
+            cr.style.maxWidth = '52vw';
+        });
+    }
+}
+
+// 最初にロボットから話しかける
+robotOutput();
+
+
+// --------------------自分の投稿（送信ボタンを押した時の処理）--------------------
+chatSubmitBtn.addEventListener('click', () => {
+  
+	// 空行の場合送信不可
+	if (!userText.value || !userText.value.match(/\S/g)) return false;
+
+	userCount ++;
+
+	console.log(`userCount: ${userCount}`);
+
+	// 投稿内容を後に活用するために、配列に保存しておく
+	userData.push(userText.value);
+	console.log(userData);
+
+	// ulとliを作り、右寄せのスタイルを適用し投稿する
+	const ul = document.getElementById('chatbot-ul');
+	const li = document.createElement('li');
+	// このdivにテキストを指定
+	const div = document.createElement('div');
+
+	li.classList.add('right');
+	ul.appendChild(li);
+	li.appendChild(div);
+	div.classList.add('chatbot-right');
+	div.textContent = userText.value;
+
+	if(robotCount < Object.keys(chatList).length) {
+		robotOutput();
+	} else {
+		// repeatRobotOutput(userText.value);
+		repeatRobotOutput();
+	}
+
+	// 一番下までスクロール
+	chatToBottom();
+
+	// テキスト入力欄を空白にする
+	// userText.value = '';
+});
+
+
+// 最後やまびこ
+function repeatRobotOutput() {
+    robotCount ++;
+    console.log(robotCount);
+
+    chatSubmitBtn.enabled = true;
+
+    const ul = document.getElementById('chatbot-ul');
+    const li = document.createElement('li');
+    li.classList.add('left');
+    ul.appendChild(li);
+
+    // 考え中アニメーションここから
+    const robotLoadingDiv = document.createElement('div');
+
+    setTimeout( ()=> {
+        li.appendChild(robotLoadingDiv);
+        robotLoadingDiv.classList.add('chatbot-left');
+        robotLoadingDiv.innerHTML = '<div id= "robot-loading-field"><span id= "robot-loading-circle1" class="material-icons">circle</span> <span id= "robot-loading-circle2" class="material-icons">circle</span> <span id= "robot-loading-circle3" class="material-icons">circle</span>';
+        console.log('考え中');
+        // 考え中アニメーションここまで
+
+        // 一番下までスクロール
+        chatToBottom();
+    }, 800);
+    
+    setTimeout( ()=> {
+
+        // 考え中アニメーション削除
+        robotLoadingDiv.remove();
+      
+        // このdivにテキストを指定
+        const div = document.createElement('div');
+        li.appendChild(div);
+        div.classList.add('chatbot-left');
+
+        div.textContent = userData[userCount - 1];
+      
+        // 一番下までスクロール
+        chatToBottom();
+
+        chatSubmitBtn.disabled = false;
+
+    }, 2000);
+
+    if(chatbotZoomState === 'large') {
+        document.querySelectorAll('.chatbot-left').forEach((cl) => {
+            cl.style.maxWidth = '52vw';
+        });
+        document.querySelectorAll('.chatbot-right').forEach((cr) => {
+            cr.style.maxWidth = '52vw';
+        });
+        document.querySelectorAll('.chatbot-left-rounded').forEach((cr) => {
+            cr.style.maxWidth = '52vw';
+        });
+    }
+}
+
+
+
+
+// PC用の拡大縮小機能
+// function chatbotZoomShape() {
+//     chatbotZoomState = 'large';
+//     console.log(chatbotZoomState);
+    
+//     chatbot.classList.add('chatbot-zoom');
+//     chatbotBody.classList.add('chatbot-body-zoom');
+//     chatbotFooter.classList.add('chatbot-footer-zoom');
+//     // 縮小アイコンに変更
+//     chatbotZoomIcon.textContent = 'fullscreen_exit';
+//     chatbotZoomIcon.setAttribute('onclick', 'chatbotZoomOff()');
+
+//     if (window.matchMedia('(min-width:700px)').matches) {
+//         //PC処理
+//         document.querySelectorAll('.chatbot-left').forEach((cl) => {
+//             cl.style.maxWidth = '52vw';
+//         });
+//         document.querySelectorAll('.chatbot-right').forEach((cr) => {
+//             cr.style.maxWidth = '52vw';
+//         });
+//         document.querySelectorAll('.chatbot-left-rounded').forEach((cr) => {
+//             cr.style.maxWidth = '52vw';
+//         });
+//     }
+// }
+// function chatbotZoom() {
+//     // 拡大する
+//     chatbotZoomShape();
+//     window.location.href = '#chatbot';
+//     // フルスクリーン
+//     // document.body.requestFullscreen();
+// }
+// function chatbotZoomOffShape() {
+//     chatbotZoomState = 'middle';
+//     console.log(chatbotZoomState);
+
+//     chatbot.classList.remove('chatbot-zoom');
+//     chatbotBody.classList.remove('chatbot-body-zoom');
+//     chatbotFooter.classList.remove('chatbot-footer-zoom');
+//     // 拡大アイコンに変更
+//     chatbotZoomIcon.textContent = 'fullscreen';
+//     chatbotZoomIcon.setAttribute('onclick', 'chatbotZoom()');
+
+//     document.querySelectorAll('.chatbot-left').forEach((cl) => {
+//         cl.style.maxWidth = '70%';
+//     });
+//     document.querySelectorAll('.chatbot-right').forEach((cr) => {
+//         cr.style.maxWidth = '70%';
+//     });
+//     document.querySelectorAll('.chatbot-left-rounded').forEach((cr) => {
+//         cr.style.maxWidth = '70%';
+//     });
+// }
+// function chatbotZoomOff() {
+//     // 縮小する
+//     chatbotZoomOffShape();
+//     window.history.back();
+//     // フルスクリーン解除
+//     // document.exitFullscreen();
+// }
+
+
+// チャットボット内のリンクが押されたとき
+function chatbotLinkClick() {
+    chatbotZoomOffShape();
+    // 折りたたむ
+    document.getElementById('chatbot').classList.add('chatbot-none');
+    document.getElementById('chatbot-back').classList.add('none');
+    document.getElementById('chatbot-start-button-icon').textContent = 'question_answer';
+}
+    </script>
+
+
+    
+</body>
+
+</html>

@@ -1,0 +1,70 @@
+
+.line_container{
+    padding: 0;
+    background: #7494c0;
+    overflow: hidden;
+    margin: 20px auto;
+    max-width: 1200px;
+    font-size: 80%;
+}
+#chatbot{
+    height: 500px; max-width: 1200px;
+    font-size: 25px;
+    background-color:#273246;
+    color: white;
+    text-align: left;
+    overflow: auto;
+
+}
+
+.title{
+    background-color: #273246;
+    height: 200px; 
+    font-size: 15Px; font-weight: bold;
+    color: white;
+    text-align: center;
+    padding-top: 30px;
+}
+
+.textarea{
+    height: 100px;
+    background-color: #7494c0;
+    margin-top: 10px;
+    text-align: center;
+    margin-bottom: 80px;
+    font-size: 50px;
+}
+#uname{
+    margin-top: 50px;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+
+#text{
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+#output :nth-child(even){
+    background-color: #8de055;
+    font-size: 15px;
+    text-align: left;
+    width: 1000px;
+    margin-left: 20px;
+    border-radius: 20px;
+    padding: 10px;
+    white-space: pre-line;
+    height: 60px;
+}
+#output :nth-child(odd){
+    background-color: #8de055;
+    font-size: 15px;
+    text-align: left;
+    width: 1000px;
+    margin-left: 20px;
+    border-radius: 20px;
+    padding: 10px;
+    white-space: pre-line;
+    height: 50px;
+}
